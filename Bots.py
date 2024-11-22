@@ -37,10 +37,10 @@ def readFromFile(fileName):
         file.close()
     return date
 
-def checkAuthorization():
+def checkAuthorization(fileLog):
     result = False
     try:
-        file = open(fileForAuthorization, 'r')
+        file = open(fileLog, 'r')
         if (file.read() == 'True'):
             result = True
             file.close()
@@ -50,20 +50,20 @@ def checkAuthorization():
     except:
         return result
     return result
-def changeAuthorizationStatus():
+def changeAuthorizationStatus(fileLog):
     try:
-        file = open(fileForAuthorization, 'r')
+        file = open(fileLog, 'r')
         if (file.read() == 'True'):
             file.close()
-            file = open(fileForAuthorization, 'w')
+            file = open(fileLog, 'w')
             file.write('False')
         else:
             file.close()
-            file = open(fileForAuthorization, 'w')
+            file = open(fileLog, 'w')
             file.write('True')
         file.close()
     except:
-        file = open(fileForAuthorization, 'w')
+        file = open(fileLog, 'w')
         file.write('True')
         file.close()
 
@@ -87,7 +87,7 @@ def start(m, res=False):
 @bot.message_handler(content_types=["text"])
 def func(message):
     if message.text == "Авторизоваться для учета" :
-        changeAuthorizationStatus()
+        changeAuthorizationStatus(fileForAuthorization)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
@@ -97,8 +97,8 @@ def func(message):
         bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью конопки start.")
         bot.send_message(message.chat.id, "Пожалуйста введите код для авторизации на маркете:", reply_markup=markup)
         #bot.send_message(message.chat.id, Authorization())
-    elif ((message.text in codeList) and (checkAuthorization() == True)):
-        changeAuthorizationStatus()
+    elif ((message.text in codeList) and (checkAuthorization(fileForAuthorization) == True)):
+        changeAuthorizationStatus(fileForAuthorization)
         authorizationUserList[int(message.chat.id)] = str(message.text)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -122,6 +122,10 @@ def func(message):
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
             bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
+    elif message.text == "Начать сбор данных о продажах":
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton("/start")
+        markup.add(item1)
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
