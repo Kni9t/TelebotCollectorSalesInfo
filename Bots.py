@@ -78,7 +78,8 @@ print("Бот запущен!")
 def start(m, res=False):
     markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1=types.KeyboardButton("Авторизоваться для учета")
-    markup.add(item1)
+    item2=types.KeyboardButton("Проверить текущую авторизацию")
+    markup.add(item1, item2)
     bot.send_message(m.chat.id, 'Приветствую! Я система по учету продаж на маркетах! Я принадлежу [Hlorkens](https://vk.com/hlorkens)', reply_markup=markup, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
@@ -96,7 +97,7 @@ def func(message):
         #bot.send_message(message.chat.id, Authorization())
     elif ((message.text in codeList) and (checkAuthorization() == True)):
         changeAuthorizationStatus()
-        authorizationUserList[message.chat.id] = message.text
+        authorizationUserList[int(message.chat.id)] = str(message.text)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("Начать сбор данных о продажах")
@@ -108,6 +109,17 @@ def func(message):
 
         bot.send_message(message.chat.id, f"Ключ указан верно, ваш маркет: {marketsDate[message.text]['name']}\nПроводится: {marketsDate[message.text]['date']}")
         bot.send_message(message.chat.id, f"Теперь вы можете запустить сбор информации.", reply_markup=markup)
+    elif message.text == "Проверить текущую авторизацию":
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton("/start")
+        markup.add(item1)
+
+        if(message.chat.id in authorizationUserList.keys()):
+            bot.send_message(message.chat.id, f"Вы авторизованы для следующего маркета:\n{marketsDate[authorizationUserList[message.chat.id]]['name']}\n{marketsDate[authorizationUserList[message.chat.id]]['date']}", reply_markup=markup)
+        else:
+            item2=types.KeyboardButton("Авторизоваться для учета")
+            markup.add(item2)
+            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
