@@ -8,10 +8,11 @@ import os
 
 bot = telebot.TeleBot(open('key').read())
 fileName = 'markets.json'
+fileForAuthorization = 'AuthorizationBuf.txt'
 authList = 'AuthorizationList.json'
 
 try:
-    os.remove('buf.txt')
+    os.remove(fileForAuthorization)
     os.remove(authList)
 except:
     pass
@@ -24,7 +25,6 @@ def rewriteToFile(obj, fileName):
         putToFile(obj, fileName)
     except:
         putToFile(obj, fileName)
-    
 def putToFile(obj, fileName):
     with open(fileName, 'w', encoding='utf8') as file:
         json.dump(obj, file, ensure_ascii=False)
@@ -38,7 +38,7 @@ def readFromFile(fileName):
 def checkAuthorization():
     result = False
     try:
-        file = open('buf.txt', 'r')
+        file = open(fileForAuthorization, 'r')
         if (file.read() == 'True'):
             result = True
             file.close()
@@ -50,18 +50,18 @@ def checkAuthorization():
     return result
 def changeAuthorizationStatus():
     try:
-        file = open('buf.txt', 'r')
+        file = open(fileForAuthorization, 'r')
         if (file.read() == 'True'):
             file.close()
-            file = open('buf.txt', 'w')
+            file = open(fileForAuthorization, 'w')
             file.write('False')
         else:
             file.close()
-            file = open('buf.txt', 'w')
+            file = open(fileForAuthorization, 'w')
             file.write('True')
         file.close()
     except:
-        file = open('buf.txt', 'w')
+        file = open(fileForAuthorization, 'w')
         file.write('True')
         file.close()
 
