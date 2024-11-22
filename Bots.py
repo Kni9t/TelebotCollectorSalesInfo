@@ -10,6 +10,8 @@ bot = telebot.TeleBot(open('key').read())
 fileName = 'markets.json'
 fileForAuthorization = 'AuthorizationBuf.txt'
 authList = 'AuthorizationList.json'
+idHost = 1209008477
+#1209008477
 
 try:
     os.remove(fileForAuthorization)
