@@ -86,16 +86,28 @@ def func(message):
     if message.text == "Авторизоваться для учета" :
         changeAuthorizationStatus()
 
-        bot.send_message(message.chat.id, "Хорошо, сейчас проведем авторизацию. Пожалуйста укажите ваш ключ:")
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton("/start")
+        markup.add(item1)
+
+        bot.send_message(message.chat.id, "Хорошо, сейчас проведем авторизацию.")
+        bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью конопки start.")
+        bot.send_message(message.chat.id, "Пожалуйста введите код для авторизации на маркете:", reply_markup=markup)
         #bot.send_message(message.chat.id, Authorization())
     elif ((message.text in codeList) and (checkAuthorization() == True)):
         changeAuthorizationStatus()
         authorizationUserList[message.chat.id] = message.text
 
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton("Начать сбор данных о продажах")
+        item2=types.KeyboardButton("/start")
+
+        markup.add(item1, item2)
+
         rewriteToFile(authorizationUserList, authList)
 
-        bot.send_message(message.chat.id, f"Ключ указан верно, ваш маркет: {marketsDate[message.text]['name']}")
-        bot.send_message(message.chat.id, f"{authorizationUserList}")
+        bot.send_message(message.chat.id, f"Ключ указан верно, ваш маркет: {marketsDate[message.text]['name']}\nПроводится: {marketsDate[message.text]['date']}")
+        bot.send_message(message.chat.id, f"Теперь вы можете запустить сбор информации.", reply_markup=markup)
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
