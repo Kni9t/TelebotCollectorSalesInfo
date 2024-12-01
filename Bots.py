@@ -5,19 +5,16 @@ import pandas as pd
 import requests
 import json
 import os
+import bufferFileController
 
 bot = telebot.TeleBot(open('key').read())
-fileName = 'markets.json'
-fileForAuthorization = 'AuthorizationBuf.txt'
+fileMarketList = 'MarketList.json'
+fileForStatus = 'BufferFiles/statusList.json'
 authList = 'AuthorizationList.json'
 idHost = 1209008477
 #1209008477
 
-try:
-    os.remove(fileForAuthorization)
-    os.remove(authList)
-except:
-    pass
+stateController = bufferFileController.stateController(fileForStatus)
 
 def rewriteToFile(obj, fileName):
     try:
@@ -67,27 +64,30 @@ def changeAuthorizationStatus(fileLog):
         file.write('True')
         file.close()
 
-marketsDate = readFromFile(fileName)
+marketsDate = readFromFile(fileMarketList)
 codeList = [marketCode for marketCode in marketsDate]
 authorizationUserList = {}
-
-def Authorization():
-    return "msg"
 
 print("Бот запущен!")
 
 @bot.message_handler(commands=["start"])
-def start(m, res=False):
+def start(message, res=False):
     markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1=types.KeyboardButton("Авторизоваться для учета")
     item2=types.KeyboardButton("Проверить текущую авторизацию")
     markup.add(item1, item2)
-    bot.send_message(m.chat.id, 'Приветствую! Я система по учету продаж на маркетах! Я принадлежу [Hlorkens](https://vk.com/hlorkens)', reply_markup=markup, parse_mode='Markdown')
+
+    if(message.chat.id in authorizationUserList.keys()):
+        item3=types.KeyboardButton("Начать сбор данных о продажах")
+
+    bot.send_message(message.chat.id, 'Приветствую! Я система по учету продаж на маркетах! Я принадлежу [Hlorkens](https://vk.com/hlorkens)', reply_markup=markup, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def func(message):
-    if message.text == "Авторизоваться для учета" :
-        changeAuthorizationStatus(fileForAuthorization)
+    if ((message.text != '') and (False)):
+          pass
+    elif message.text == "Авторизоваться для учета" :
+        stateController.setUserStats(str(message.chat.id), 'authorizationState', True)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
@@ -97,9 +97,10 @@ def func(message):
         bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью конопки start.")
         bot.send_message(message.chat.id, "Пожалуйста введите код для авторизации на маркете:", reply_markup=markup)
         #bot.send_message(message.chat.id, Authorization())
-    elif ((message.text in codeList) and (checkAuthorization(fileForAuthorization) == True)):
-        changeAuthorizationStatus(fileForAuthorization)
+    elif ((message.text in codeList) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
+        
         authorizationUserList[int(message.chat.id)] = str(message.text)
+        stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("Начать сбор данных о продажах")
@@ -126,6 +127,14 @@ def func(message):
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
         markup.add(item1)
+
+        if(message.chat.id in authorizationUserList.keys()):
+            #changeAuthorizationStatus(fileForCollectDateStatus)
+            bot.send_message(message.chat.id, f"Вы успешно авторизовались для сбора продаж на: {marketsDate[authorizationUserList[message.chat.id]]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавлятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
+        else:
+            item2=types.KeyboardButton("Авторизоваться для учета")
+            markup.add(item2)
+            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
