@@ -7,7 +7,8 @@ import jsonController as JC
 '''
 '1234536': {
         'authorizationState': False,
-        'salesCollectState': False
+        'salesCollectState': False,
+        'selectedMarket': 'market name' or None
     }
 '''
 
@@ -24,7 +25,8 @@ class stateController(JC.jsonController):
         if (change == False):
             dateFromFiles[idUser] = {
                 'authorizationState': False,
-                'salesCollectState': False
+                'salesCollectState': False,
+                'selectedMarket': None
             }
             dateFromFiles[idUser][stats] = value
         

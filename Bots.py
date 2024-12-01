@@ -16,55 +16,10 @@ idHost = 1209008477
 
 stateController = bufferFileController.stateController(fileForStatus)
 
-def rewriteToFile(obj, fileName):
-    try:
-        fileDate = readFromFile(fileName)
-        for item in fileDate:
-            obj.update(fileDate[item])
-        putToFile(obj, fileName)
-    except:
-        putToFile(obj, fileName)
-def putToFile(obj, fileName):
-    with open(fileName, 'w', encoding='utf8') as file:
-        json.dump(obj, file, ensure_ascii=False)
-        file.close()
-def readFromFile(fileName):
-    with open(fileName, 'r', encoding='utf8') as file:
-        date = json.load(file)
-        file.close()
-    return date
+with open(fileMarketList, 'r', encoding='utf8') as file:
+    marketsDate = json.load(file)
+    file.close()
 
-def checkAuthorization(fileLog):
-    result = False
-    try:
-        file = open(fileLog, 'r')
-        if (file.read() == 'True'):
-            result = True
-            file.close()
-        else:
-            result = False
-        file.close()
-    except:
-        return result
-    return result
-def changeAuthorizationStatus(fileLog):
-    try:
-        file = open(fileLog, 'r')
-        if (file.read() == 'True'):
-            file.close()
-            file = open(fileLog, 'w')
-            file.write('False')
-        else:
-            file.close()
-            file = open(fileLog, 'w')
-            file.write('True')
-        file.close()
-    except:
-        file = open(fileLog, 'w')
-        file.write('True')
-        file.close()
-
-marketsDate = readFromFile(fileMarketList)
 codeList = [marketCode for marketCode in marketsDate]
 authorizationUserList = {}
 
@@ -99,16 +54,14 @@ def func(message):
         #bot.send_message(message.chat.id, Authorization())
     elif ((message.text in codeList) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
         
-        authorizationUserList[int(message.chat.id)] = str(message.text)
         stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
+        stateController.setUserStats(str(message.chat.id), 'selectedMarket', message.text)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("Начать сбор данных о продажах")
         item2=types.KeyboardButton("/start")
 
         markup.add(item1, item2)
-
-        rewriteToFile(authorizationUserList, authList)
 
         bot.send_message(message.chat.id, f"Ключ указан верно, ваш маркет: {marketsDate[message.text]['name']}\nПроводится: {marketsDate[message.text]['date']}")
         bot.send_message(message.chat.id, f"Теперь вы можете запустить сбор информации.", reply_markup=markup)
@@ -117,8 +70,8 @@ def func(message):
         item1=types.KeyboardButton("/start")
         markup.add(item1)
 
-        if(message.chat.id in authorizationUserList.keys()):
-            bot.send_message(message.chat.id, f"Вы авторизованы для следующего маркета:\n{marketsDate[authorizationUserList[message.chat.id]]['name']}\n{marketsDate[authorizationUserList[message.chat.id]]['date']}", reply_markup=markup)
+        if(str(message.chat.id) in stateController.getDate().keys()):
+            bot.send_message(message.chat.id, f"Вы авторизованы для следующего маркета:\n{marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\n{marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['date']}", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
@@ -129,8 +82,7 @@ def func(message):
         markup.add(item1)
 
         if(message.chat.id in authorizationUserList.keys()):
-            #changeAuthorizationStatus(fileForCollectDateStatus)
-            bot.send_message(message.chat.id, f"Вы успешно авторизовались для сбора продаж на: {marketsDate[authorizationUserList[message.chat.id]]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавлятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
+            bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавлятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
