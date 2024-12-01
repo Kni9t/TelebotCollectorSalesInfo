@@ -5,6 +5,8 @@ import pandas as pd
 import requests
 import json
 import os
+from datetime import datetime
+
 import bufferFileController
 
 bot = telebot.TeleBot(open('key').read())
@@ -20,8 +22,7 @@ with open(fileMarketList, 'r', encoding='utf8') as file:
     marketsDate = json.load(file)
     file.close()
 
-codeList = [marketCode for marketCode in marketsDate]
-authorizationUserList = {}
+marketSales = []
 
 print("Бот запущен!")
 
@@ -32,16 +33,26 @@ def start(message, res=False):
     item2=types.KeyboardButton("Проверить текущую авторизацию")
     markup.add(item1, item2)
 
-    if(message.chat.id in authorizationUserList.keys()):
-        item3=types.KeyboardButton("Начать сбор данных о продажах")
+    stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
+
+    if (str(message.chat.id) in stateController.getDate().keys()):
+        if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
+            item3=types.KeyboardButton("Начать сбор данных о продажах")
+            markup.add(item3)
 
     bot.send_message(message.chat.id, 'Приветствую! Я система по учету продаж на маркетах! Я принадлежу [Hlorkens](https://vk.com/hlorkens)', reply_markup=markup, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def func(message):
-    if ((message.text != '') and (False)):
-          pass
+    if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
+        try:
+            bufNum = int(message.text)
+            marketSales.append({'id Маркета:':stateController.getDate()[str(message.chat.id)]['selectedMarket'], 'Сумма:': bufNum, 'Дата:': datetime.now().strftime('%d-%m-%Y-%H-%M-%S'), 'Пользователь:': str(message.chat.id)})
+            bot.send_message(message.chat.id, f"Продажа зарегестрирована! {marketSales}")
+        except:
+            bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
     elif message.text == "Авторизоваться для учета" :
+        stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
         stateController.setUserStats(str(message.chat.id), 'authorizationState', True)
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -52,7 +63,7 @@ def func(message):
         bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью конопки start.")
         bot.send_message(message.chat.id, "Пожалуйста введите код для авторизации на маркете:", reply_markup=markup)
         #bot.send_message(message.chat.id, Authorization())
-    elif ((message.text in codeList) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
+    elif ((message.text in marketsDate.keys()) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
         
         stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
         stateController.setUserStats(str(message.chat.id), 'selectedMarket', message.text)
@@ -81,7 +92,8 @@ def func(message):
         item1=types.KeyboardButton("/start")
         markup.add(item1)
 
-        if(message.chat.id in authorizationUserList.keys()):
+        if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
+            stateController.setUserStats(str(message.chat.id), 'salesCollectState', True)
             bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавлятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
