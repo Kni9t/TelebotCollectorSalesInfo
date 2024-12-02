@@ -25,8 +25,6 @@ with open(fileMarketList, 'r', encoding='utf8') as file:
     marketsDate = json.load(file)
     file.close()
 
-marketSales = []
-
 print("Бот запущен!")
 
 @bot.message_handler(commands=["start"])
@@ -37,11 +35,16 @@ def start(message, res=False):
     markup.add(item1, item2)
 
     stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
+    stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
 
     if (str(message.chat.id) in stateController.getDate().keys()):
         if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
             item3=types.KeyboardButton("Начать сбор данных о продажах")
             markup.add(item3)
+    
+    if(message.chat.id == idHost):
+        item4=types.KeyboardButton("Данные о текущих продажах")
+        markup.add(item4)
 
     bot.send_message(message.chat.id, 'Приветствую! Я система по учету продаж на маркетах! Я принадлежу [Hlorkens](https://vk.com/hlorkens)', reply_markup=markup, parse_mode='Markdown')
 
@@ -91,7 +94,7 @@ def func(message):
         item1=types.KeyboardButton("/start")
         markup.add(item1)
 
-        if(str(message.chat.id) in stateController.getDate().keys()):
+        if(stateController.getAuthorizatMarket(str(message.chat.id)) != None):
             bot.send_message(message.chat.id, f"Вы авторизованы для следующего маркета:\n{marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\n{marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['date']}", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
@@ -109,6 +112,14 @@ def func(message):
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
             bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
+    elif ((message.text == 'Данные о текущих продажах') and (message.chat.id == idHost)):
+        
+        for market in marketsDate.keys():
+            bufSum = sales.getSumSales(market)
+            if (bufSum != 0):
+                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} натекущий момент сумма продаж составляет: {bufSum} руб.")
+            else:
+                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} продаж пока нету!")
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")

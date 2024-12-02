@@ -38,6 +38,13 @@ class stateController(JC.jsonController):
         for id in dateFromFiles:
             if (id == idUser):
                 return dateFromFiles[id]['authorizationState']
+            
+    def getAuthorizatMarket(self, idUser):
+        dateFromFiles = self.getDate()
+
+        for id in dateFromFiles:
+            if (id == idUser):
+                return dateFromFiles[id]['selectedMarket']
     
     def getSalesCollectState(self, idUser):
         dateFromFiles = self.getDate()

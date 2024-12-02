@@ -26,3 +26,15 @@ class salesController(JC.jsonController):
                 self.writeDate({marketID: [sales]})
         else:
             self.writeDate({marketID: [sales]})
+    
+    def getSumSales(self, marketID):
+        if (os.path.isfile(self.fileName)):
+            dateFromFiles = self.getDate()
+            sumSales = 0
+            for market in dateFromFiles:
+                if (market == marketID):
+                    for sales in dateFromFiles[market]:
+                        sumSales += sales['Value']
+            return sumSales
+        else:
+            return 0
