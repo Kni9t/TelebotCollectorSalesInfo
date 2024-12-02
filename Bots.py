@@ -8,15 +8,18 @@ import os
 from datetime import datetime
 
 import bufferFileController
+import salesController
 
 bot = telebot.TeleBot(open('key').read())
 fileMarketList = 'MarketList.json'
 fileForStatus = 'BufferFiles/statusList.json'
-authList = 'AuthorizationList.json'
+fileForSales = 'SalesList/salesList.json'
+
 idHost = 1209008477
 #1209008477
 
 stateController = bufferFileController.stateController(fileForStatus)
+sales = salesController.salesController(fileForSales)
 
 with open(fileMarketList, 'r', encoding='utf8') as file:
     marketsDate = json.load(file)
@@ -47,8 +50,15 @@ def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
             bufNum = int(message.text)
-            marketSales.append({'id Маркета:':stateController.getDate()[str(message.chat.id)]['selectedMarket'], 'Сумма:': bufNum, 'Дата:': datetime.now().strftime('%d-%m-%Y-%H-%M-%S'), 'Пользователь:': str(message.chat.id)})
-            bot.send_message(message.chat.id, f"Продажа зарегестрирована! {marketSales}")
+            date = {
+                'Date': datetime.now().strftime('%d.%m.%Y'),
+                'Time': datetime.now().strftime('%H:%M:%S'),
+                'Value': bufNum,
+                'Sender': str(message.chat.id)
+            }
+            sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
+
+            bot.send_message(message.chat.id, f"Продажа зарегестрирована! {date}")
         except:
             bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
     elif message.text == "Авторизоваться для учета" :
@@ -66,7 +76,7 @@ def func(message):
     elif ((message.text in marketsDate.keys()) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
         
         stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
-        stateController.setUserStats(str(message.chat.id), 'selectedMarket', message.text)
+        stateController.setUserStats(str(message.chat.id), 'selectedMarket', str(message.text))
 
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("Начать сбор данных о продажах")

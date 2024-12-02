@@ -25,19 +25,7 @@ class jsonController:
                 return {}
         else:
             return {}
-        
-    def addDate(self, date):
-        if (os.path.isfile(self.fileName)):
-            dateFromFiles = self.getDate()
-            for key in date:
-                dateFromFiles[str(key)] = date[str(key)]
-
-            with open(self.fileName, "w", encoding='utf8') as outfile:
-                outfile.write(json.dumps(dateFromFiles))
-                outfile.close()
-        else:
-            self.writeDate(date)
-
+    
     def writeDate(self, date):
         with open(self.fileName, "w", encoding='utf8') as outfile:
                 outfile.write(json.dumps(date))

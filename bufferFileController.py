@@ -45,3 +45,15 @@ class stateController(JC.jsonController):
         for id in dateFromFiles:
             if (id == idUser):
                 return dateFromFiles[id]['salesCollectState']
+        
+    def addDate(self, date):
+        if (os.path.isfile(self.fileName)):
+            dateFromFiles = self.getDate()
+            for key in date:
+                dateFromFiles[str(key)] = date[str(key)]
+
+            with open(self.fileName, "w", encoding='utf8') as outfile:
+                outfile.write(json.dumps(dateFromFiles))
+                outfile.close()
+        else:
+            self.writeDate(date)
