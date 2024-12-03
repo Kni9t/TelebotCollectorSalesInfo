@@ -61,7 +61,7 @@ def func(message):
             }
             sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
 
-            bot.send_message(message.chat.id, f"Продажа зарегестрирована! {date}")
+            bot.send_message(message.chat.id, f"Продажа зарегистрирована! {date}")
         except:
             bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
     elif message.text == "Авторизоваться для учета" :
@@ -73,7 +73,7 @@ def func(message):
         markup.add(item1)
 
         bot.send_message(message.chat.id, "Хорошо, сейчас проведем авторизацию.")
-        bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью конопки start.")
+        bot.send_message(message.chat.id, "Если необходимо, вы можете перезапустить бота с помощью кнопки start.")
         bot.send_message(message.chat.id, "Пожалуйста введите код для авторизации на маркете:", reply_markup=markup)
         #bot.send_message(message.chat.id, Authorization())
     elif ((message.text in marketsDate.keys()) and (stateController.getAuthorizationUserState(str(message.chat.id)) == True)):
@@ -88,7 +88,7 @@ def func(message):
         markup.add(item1, item2)
 
         bot.send_message(message.chat.id, f"Ключ указан верно, ваш маркет: {marketsDate[message.text]['name']}\nПроводится: {marketsDate[message.text]['date']}")
-        bot.send_message(message.chat.id, f"Теперь вы можете запустить сбор информации.", reply_markup=markup)
+        bot.send_message(message.chat.id, f"Теперь вы можете запустить сбор информации. Для этого нажмите соответствующую кнопку ниже, либо же напишите боту сообщение: 'Начать сбор данных о продажах'", reply_markup=markup)
     elif message.text == "Проверить текущую авторизацию":
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
@@ -99,7 +99,7 @@ def func(message):
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
-            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
+            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответствующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
     elif message.text == "Начать сбор данных о продажах":
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
@@ -107,19 +107,19 @@ def func(message):
 
         if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
             stateController.setUserStats(str(message.chat.id), 'salesCollectState', True)
-            bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавлятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
+            bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
-            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответсвующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
+            bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответствующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
     elif ((message.text == 'Данные о текущих продажах') and (message.chat.id == idHost)):
         
         for market in marketsDate.keys():
             bufSum = sales.getSumSales(market)
             if (bufSum != 0):
-                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} натекущий момент сумма продаж составляет: {bufSum} руб.")
+                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} на текущий момент сумма продаж составляет: {bufSum} руб.")
             else:
-                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} продаж пока нету!")
+                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} продаж пока отсутствуют!")
     else:
         markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1=types.KeyboardButton("/start")
