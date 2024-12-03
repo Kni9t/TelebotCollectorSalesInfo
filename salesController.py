@@ -13,6 +13,14 @@ import os, json
 '''
 
 class salesController(JC.jsonController):
+    def __init__(self, bufFileName):
+        self.fileName = bufFileName
+        if (os.path.isfile(self.fileName)):
+            pass
+        else:
+            file = open(self.fileName, 'w', encoding='utf8')
+            file.close()
+            
     def addSales(self, marketID, sales):
         if (os.path.isfile(self.fileName)):
             dateFromFiles = self.getDate()
