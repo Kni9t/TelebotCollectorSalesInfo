@@ -66,3 +66,11 @@ class salesController(JC.jsonController):
                         dateFromFiles[market].remove(sales)
                         self.writeDate(dateFromFiles)
                         return buf
+    def getSalesOwner(self, marketID, ID):
+        dateFromFiles = self.getDate()
+        for market in dateFromFiles:
+            if (market == marketID):
+                for sales in dateFromFiles[market]:
+                    if (sales['ID'] == ID):
+                        return sales['SenderID']
+        return -1

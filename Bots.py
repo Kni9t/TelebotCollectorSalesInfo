@@ -53,8 +53,9 @@ def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
             bufNum = int(message.text)
+            authorizationUserMarket = str(stateController.getDate()[str(message.chat.id)]['selectedMarket'])
             if (bufNum >= 0):
-                bufID = sales.getActualID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']))
+                bufID = sales.getActualID(authorizationUserMarket)
                 date = {
                     'ID': int(bufID + 1),
                     'Date': datetime.now().strftime('%d.%m.%Y'),
@@ -63,16 +64,19 @@ def func(message):
                     'SenderID': str(message.chat.id),
                     'SenderName': str(message.from_user.username)
                 }
-                sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
+                sales.addSales(authorizationUserMarket, date)
 
-                bot.send_message(message.chat.id, f"Продажа зарегистрирована! {date}")
+                bot.send_message(message.chat.id, f"Продажа зарегистрирована!\nID: {date['ID']}\nСумма: {date['Value']}")
             else:
                 bufNum *= -1
-                removedSales = sales.removeSalesByID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), int(bufNum))
-                if (removedSales != None):
-                    bot.send_message(message.chat.id, f"Продажа удалена! {removedSales}")
+                if (sales.getSalesOwner(authorizationUserMarket, int(bufNum)) == str(message.chat.id)):
+                    removedSales = sales.removeSalesByID(authorizationUserMarket, int(bufNum))
+                    if (removedSales != None):
+                        bot.send_message(message.chat.id, f"Продажа удалена! {removedSales}")
+                    else:
+                        bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
                 else:
-                    bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
+                    bot.send_message(message.chat.id, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
         except:
             bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
     elif message.text == "Авторизоваться для учета" :
@@ -118,7 +122,8 @@ def func(message):
 
         if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
             stateController.setUserStats(str(message.chat.id), 'salesCollectState', True)
-            bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.", reply_markup=markup)
+            bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
+            bot.send_message(message.chat.id, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
@@ -139,5 +144,3 @@ def func(message):
 
 # Запускаем бота
 bot.polling(none_stop=True, interval=0)
-
-#https://xakep.ru/2021/11/28/python-telegram-bots/
