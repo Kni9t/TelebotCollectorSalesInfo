@@ -4,10 +4,12 @@ import os, json
 '''
 'market id': [
     {
+    'ID': 0,
     'Date': '12.12.2024',
     'Time': '15:30',
     'Value': 1233,
-    'Sender': Iduser
+    'SenderID': Iduser,
+    'SenderName': userName
     }
 ]
 '''
@@ -46,3 +48,12 @@ class salesController(JC.jsonController):
             return sumSales
         else:
             return 0
+        
+    def getActualID(self, idmarket):
+        dateFromFiles = self.getDate()
+
+        for market in dateFromFiles:
+            if (market == idmarket):
+                return dateFromFiles[market][-1]['ID']
+
+        return 0
