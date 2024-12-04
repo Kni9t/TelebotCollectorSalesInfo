@@ -53,18 +53,26 @@ def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
             bufNum = int(message.text)
-            bufID = sales.getActualID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']))
-            date = {
-                'ID': bufID + 1,
-                'Date': datetime.now().strftime('%d.%m.%Y'),
-                'Time': datetime.now().strftime('%H:%M:%S'),
-                'Value': bufNum,
-                'SenderID': str(message.chat.id),
-                'SenderName': str(message.from_user.username)
-            }
-            sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
+            if (bufNum >= 0):
+                bufID = sales.getActualID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']))
+                date = {
+                    'ID': int(bufID + 1),
+                    'Date': datetime.now().strftime('%d.%m.%Y'),
+                    'Time': datetime.now().strftime('%H:%M:%S'),
+                    'Value': bufNum,
+                    'SenderID': str(message.chat.id),
+                    'SenderName': str(message.from_user.username)
+                }
+                sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
 
-            bot.send_message(message.chat.id, f"Продажа зарегистрирована! {date}")
+                bot.send_message(message.chat.id, f"Продажа зарегистрирована! {date}")
+            else:
+                bufNum *= -1
+                removedSales = sales.removeSalesByID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), int(bufNum))
+                if (removedSales != None):
+                    bot.send_message(message.chat.id, f"Продажа удалена! {removedSales}")
+                else:
+                    bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
         except:
             bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
     elif message.text == "Авторизоваться для учета" :

@@ -49,11 +49,20 @@ class salesController(JC.jsonController):
         else:
             return 0
         
-    def getActualID(self, idmarket):
+    def getActualID(self, marketID):
         dateFromFiles = self.getDate()
-
         for market in dateFromFiles:
-            if (market == idmarket):
+            if (market == marketID):
                 return dateFromFiles[market][-1]['ID']
-
         return 0
+    
+    def removeSalesByID(self, marketID, ID):
+        dateFromFiles = self.getDate()
+        for market in dateFromFiles:
+            if (market == marketID):
+                for sales in dateFromFiles[market]:
+                    if (sales['ID'] == ID):
+                        buf = sales
+                        dateFromFiles[market].remove(sales)
+                        self.writeDate(dateFromFiles)
+                        return buf
