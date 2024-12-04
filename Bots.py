@@ -59,7 +59,8 @@ def func(message):
                 'Date': datetime.now().strftime('%d.%m.%Y'),
                 'Time': datetime.now().strftime('%H:%M:%S'),
                 'Value': bufNum,
-                'SenderID': str(message.chat.id)
+                'SenderID': str(message.chat.id),
+                'SenderName': str(message.from_user.username)
             }
             sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
 
