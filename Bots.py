@@ -53,11 +53,13 @@ def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
             bufNum = int(message.text)
+            bufID = sales.getActualID(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']))
             date = {
+                'ID': bufID + 1,
                 'Date': datetime.now().strftime('%d.%m.%Y'),
                 'Time': datetime.now().strftime('%H:%M:%S'),
                 'Value': bufNum,
-                'Sender': str(message.chat.id)
+                'SenderID': str(message.chat.id)
             }
             sales.addSales(str(stateController.getDate()[str(message.chat.id)]['selectedMarket']), date)
 
