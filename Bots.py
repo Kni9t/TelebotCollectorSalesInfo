@@ -35,6 +35,9 @@ def start(message, res=False):
     item2=types.KeyboardButton("Проверить текущую авторизацию")
     markup.add(item1, item2)
 
+    if (stateController.getSalesCollectState(str(message.chat.id))):
+        bot.send_message(message.chat.id, 'Сбор данных о продажах остановлен!')
+
     stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
     stateController.setUserStats(str(message.chat.id), 'authorizationState', False)
 
@@ -53,7 +56,7 @@ def start(message, res=False):
 def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
-            bufNum = int(message.text)
+            bufNum = int(message.text.split()[0])
             authorizationUserMarket = str(stateController.getDate()[str(message.chat.id)]['selectedMarket'])
             if (bufNum >= 0):
                 bufID = sales.getActualID(authorizationUserMarket)
@@ -62,12 +65,20 @@ def func(message):
                     'Date': datetime.now().strftime('%d.%m.%Y'),
                     'Time': datetime.now().strftime('%H:%M:%S'),
                     'Value': bufNum,
+                    'Cash': False,
                     'SenderID': str(message.chat.id),
                     'SenderName': str(message.from_user.username)
                 }
+                if (len(message.text.split()) > 1):
+                    date['Cash'] = True
                 sales.addSales(authorizationUserMarket, date)
 
-                bot.send_message(message.chat.id, f"Продажа зарегистрирована!\nID: {date['ID']}\nСумма: {date['Value']}")
+                if (date['Cash']):
+                    msgTypeSales = 'Оплата: Наличные'
+                else:
+                    msgTypeSales = 'Оплата: Онлайн перевод'
+
+                bot.send_message(message.chat.id, f"Продажа зарегистрирована!\nID: {date['ID']}\nСумма: {date['Value']}\n{msgTypeSales}")
             else:
                 bufNum *= -1
                 if (sales.getSalesOwner(authorizationUserMarket, int(bufNum)) == str(message.chat.id)):
@@ -79,7 +90,7 @@ def func(message):
                 else:
                     bot.send_message(message.chat.id, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
         except:
-            bot.send_message(message.chat.id, "Пожалуйста, вводите только числа!")
+            bot.send_message(message.chat.id, "Значение перед пробелом должно быть числом!")
     elif message.text == "Авторизоваться для учета" :
         stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
         stateController.setUserStats(str(message.chat.id), 'authorizationState', True)
@@ -124,13 +135,13 @@ def func(message):
         if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
             stateController.setUserStats(str(message.chat.id), 'salesCollectState', True)
             bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
+            bot.send_message(message.chat.id, 'Все зарегистрированные платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте после суммы пробел и любую текстовую строчку.\nНапример так: "600 нал"\nИли так: "500 н"')
             bot.send_message(message.chat.id, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
             markup.add(item2)
             bot.send_message(message.chat.id, "Похоже вы не авторизованы. Используйте соответствующий пункт меню или если что-то пошло не так свяжитесь с владельцами бота.", reply_markup=markup)
     elif ((message.text == 'Данные о текущих продажах') and (message.chat.id == idHost)):
-        
         for market in marketsDate.keys():
             bufSum = sales.getSumSales(market)
             if (bufSum != 0):
