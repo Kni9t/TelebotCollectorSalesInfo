@@ -79,6 +79,13 @@ def func(message):
                     msgTypeSales = 'Оплата: Онлайн перевод'
 
                 bot.send_message(message.chat.id, f"Продажа зарегистрирована!\nID: {date['ID']}\nСумма: {date['Value']}\n{msgTypeSales}")
+                
+                totalSales = sales.getDetailsSales(authorizationUserMarket)
+                cash = totalSales['Cash']
+                online = totalSales['Online']
+                total = totalSales['Total']
+
+                bot.send_message(message.chat.id, f"Текущие продажи для маркета: {marketsDate[authorizationUserMarket]['name']}\nНаличные: {cash}\nПереводы: {online}\nОбщая сумма: {total}")
             else:
                 bufNum *= -1
                 if (sales.getSalesOwner(authorizationUserMarket, int(bufNum)) == str(message.chat.id)):
@@ -89,7 +96,8 @@ def func(message):
                         bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
                 else:
                     bot.send_message(message.chat.id, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
-        except:
+        except Exception as e:
+            print(f'Error: {e}')
             bot.send_message(message.chat.id, "Значение перед пробелом должно быть числом!")
     elif message.text == "Авторизоваться для учета" :
         stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
