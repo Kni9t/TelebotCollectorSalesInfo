@@ -6,10 +6,7 @@ class jsonController:
     def __init__(self, bufFileName):
         self.fileName = bufFileName
         if (os.path.isfile(self.fileName)):
-            path, file = os.path.split(self.fileName)
-            os.rename(self.fileName, f'{path}/{datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}-{file}')
-            file = open(self.fileName, 'w', encoding='utf8')
-            file.close()
+            pass
         else:
             file = open(self.fileName, 'w', encoding='utf8')
             file.close()
