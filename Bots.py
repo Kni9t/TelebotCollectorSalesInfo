@@ -7,7 +7,7 @@ import json
 import os
 from datetime import datetime
 
-import bufferFileController
+import stateController
 import salesController
 
 bot = telebot.TeleBot(open('key').read())
@@ -18,7 +18,7 @@ fileForSales = 'SalesList/salesList.json'
 idHost = 1209008477
 #1209008477
 
-stateController = bufferFileController.stateController(fileForStatus)
+stateController = stateController.stateController(fileForStatus)
 sales = salesController.salesController(fileForSales)
 
 with open(fileMarketList, 'r', encoding='utf8') as file:
