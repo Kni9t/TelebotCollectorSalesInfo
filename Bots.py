@@ -26,6 +26,13 @@ with open(fileMarketList, 'r', encoding='utf8') as file:
     marketsDate = json.load(file)
     file.close()
 
+def createStatesStrings(marketID):
+    totalSales = sales.getDetailsSales(marketID)
+    cash = totalSales['Cash']
+    online = totalSales['Online']
+    total = totalSales['Total']
+    return f'Наличные: {cash} руб.\nПереводы: {online} руб.\nОбщая сумма: {total} руб.'
+
 print("Бот запущен!")
 
 @bot.message_handler(commands=["start"])
@@ -56,7 +63,11 @@ def start(message, res=False):
 def func(message):
     if ((message.text != '') and (stateController.getSalesCollectState(str(message.chat.id)) == True) and (message.text != '/start')):
         try:
-            bufNum = int(message.text.split()[0])
+            bufNum = int(message.text.lower().split('н')[0])
+            cash = False
+
+            if(message.text.lower()[-1] == 'н'): cash = True
+                
             authorizationUserMarket = str(stateController.getDate()[str(message.chat.id)]['selectedMarket'])
             if (bufNum >= 0):
                 bufID = sales.getActualID(authorizationUserMarket)
@@ -65,12 +76,10 @@ def func(message):
                     'Date': datetime.now().strftime('%d.%m.%Y'),
                     'Time': datetime.now().strftime('%H:%M:%S'),
                     'Value': bufNum,
-                    'Cash': False,
+                    'Cash': cash,
                     'SenderID': str(message.chat.id),
                     'SenderName': str(message.from_user.username)
                 }
-                if (len(message.text.split()) > 1):
-                    date['Cash'] = True
                 sales.addSales(authorizationUserMarket, date)
 
                 if (date['Cash']):
@@ -79,13 +88,7 @@ def func(message):
                     msgTypeSales = 'Оплата: Онлайн перевод'
 
                 bot.send_message(message.chat.id, f"Продажа зарегистрирована!\nID: {date['ID']}\nСумма: {date['Value']}\n{msgTypeSales}")
-                
-                totalSales = sales.getDetailsSales(authorizationUserMarket)
-                cash = totalSales['Cash']
-                online = totalSales['Online']
-                total = totalSales['Total']
-
-                bot.send_message(message.chat.id, f"Текущие продажи для маркета: {marketsDate[authorizationUserMarket]['name']}\nНаличные: {cash}\nПереводы: {online}\nОбщая сумма: {total}")
+                bot.send_message(message.chat.id, f"Текущие продажи для маркета: {marketsDate[authorizationUserMarket]['name']}\n{createStatesStrings(authorizationUserMarket)}")
             else:
                 bufNum *= -1
                 if (sales.getSalesOwner(authorizationUserMarket, int(bufNum)) == str(message.chat.id)):
@@ -96,9 +99,10 @@ def func(message):
                         bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
                 else:
                     bot.send_message(message.chat.id, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
-        except Exception as e:
-            print(f'Error: {e}')
-            bot.send_message(message.chat.id, "Значение перед пробелом должно быть числом!")
+        except:
+            bot.send_message(message.chat.id, "Некорректный формат ввода!")
+            bot.send_message(message.chat.id, "Пожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!")
+            bot.send_message(message.chat.id, "Примеры: '300', '450н', '600Н'")
     elif message.text == "Авторизоваться для учета" :
         stateController.setUserStats(str(message.chat.id), 'salesCollectState', False)
         stateController.setUserStats(str(message.chat.id), 'authorizationState', True)
@@ -143,7 +147,7 @@ def func(message):
         if(stateController.getDate()[str(message.chat.id)]['selectedMarket'] != None):
             stateController.setUserStats(str(message.chat.id), 'salesCollectState', True)
             bot.send_message(message.chat.id, f"Вы успешно запустили сбор данных о продажах на: {marketsDate[stateController.getDate()[str(message.chat.id)]['selectedMarket']]['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
-            bot.send_message(message.chat.id, 'Все зарегистрированные платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте после суммы пробел и любую текстовую строчку.\nНапример так: "600 нал"\nИли так: "500 н"')
+            bot.send_message(message.chat.id, 'Все зарегистрированные платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте строго после суммы букву заглавную или прописную букву Н.\nНапример так: "600н"\nИли так: "500Н"')
             bot.send_message(message.chat.id, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", reply_markup=markup)
         else:
             item2=types.KeyboardButton("Авторизоваться для учета")
@@ -153,7 +157,7 @@ def func(message):
         for market in marketsDate.keys():
             bufSum = sales.getSumSales(market)
             if (bufSum != 0):
-                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} на текущий момент сумма продаж составляет: {bufSum} руб.")
+                bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} на текущий момент продажи такие:\n{createStatesStrings(str(market))}")
             else:
                 bot.send_message(message.chat.id, f"Для маркета {marketsDate[str(market)]["name"]} продаж пока отсутствуют!")
     else:
