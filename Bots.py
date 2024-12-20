@@ -72,7 +72,7 @@ def func(message):
                 if (sales.getSalesOwner(authorizationUserMarket, int(bufNum)) == str(message.chat.id)):
                     removedSales = sales.removeSalesByID(authorizationUserMarket, int(bufNum))
                     if (removedSales != None):
-                        bot.send_message(message.chat.id, f"Продажа удалена! {removedSales}")
+                        bot.send_message(message.chat.id, f"Продажа, зарегистрированная в {removedSales['Date']} {removedSales['Time']}\nc ID: {removedSales['ID']}, на сумму {removedSales['Value']} успешно удалена!")
                     else:
                         bot.send_message(message.chat.id, f"Продажи с таким ID нету для данного маркета!")
                 else:
