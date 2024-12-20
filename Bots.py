@@ -3,6 +3,7 @@ import random
 from telebot import types
 import pandas as pd
 import requests
+import time
 import json
 import os
 from datetime import datetime
@@ -142,5 +143,11 @@ def func(message):
         markup.add(item1)
         bot.send_message(message.chat.id, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", reply_markup=markup)
 
-# Запускаем бота
-bot.polling(none_stop=True, interval=0)
+while True:
+    try:
+        bot.polling(none_stop=True, interval=0)
+    except Exception as e:
+        file = open('Error_log.txt', 'a')
+        file.write(f'{datetime.now()} - {e}\n')
+        time.sleep(5)
+        continue
